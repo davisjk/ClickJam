@@ -1,1 +1,1 @@
-# EnglishWordSeparationGraph
+# AHKAutoClicker
