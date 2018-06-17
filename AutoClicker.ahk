@@ -4,11 +4,14 @@ SendMode Input
 SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
-alocs := []		; 2D array of click locations [x, y, w, {normal, rect, ...}]
-clocs := 0		; stored click locations
+; Initializations
+alocs := []		; 2D stack of click locations [x, y, w, {normal, rect, ...}]
+clocs := 0		; number of stored click locations
+
+; Constants
 dtime := 15		; milliseconds between click down/up
-stime := 15		; milliseconds between clicks
-rtime := 50		; times to click in rectangle
+stime := 30		; milliseconds between clicks
+rtime := 100	; times to click in rectangle
 clicc := true	; click or just move the mouse around
 fname := A_WorkingDir . "\autoclicker"	; base name of config file
 fends := ".ini"
@@ -18,17 +21,15 @@ f2::Suspend
 f3::Reload
 f4::Edit
 
-; Click randomly in rectangle made by u and v locations in click array
+; Click randomly in rectangle made by u and v locations in click stack
 ; otherwise return if u and v don't exist
 rect(repeat, u, v)
 {
 	global
-	; Send {a down}
 	if not ((clocs >= 2) and (clocs >= u) and (clocs >= v) and (alocs[u][3] = alocs[v][3]))
 		return
 	mouseW := alocs[u][3]
 	WinActivate, ahk_id mouseW
-	Click down	; TODO delete probs
 	Loop, %repeat%
 	{
 		if !toggle
@@ -44,7 +45,6 @@ rect(repeat, u, v)
 		}
 		Sleep, stime
 	}
-	; Send {a up}
 	return
 }
 
@@ -73,6 +73,7 @@ drag(u, v)
 	return
 }
 
+; Necessary for toggle to work
 #MaxThreadsPerHotkey 2
 
 ; Click unlocked mouse or stop click
@@ -97,7 +98,6 @@ i := 0
 MouseGetPos, mouseX, mouseY, mouseW
 Loop
 {
-	; Send {d down}
 	if !toggle
 		break
 	if clocs <> 0
@@ -160,7 +160,6 @@ Loop
 	Click Up
 	Sleep, stime
 }
-; Send {d up}
 return
 
 ; Turn off auto clicker on left click
@@ -173,13 +172,14 @@ Click Up
 toggle := false
 return
 
-; Add location to click array
+; Push location to click stack
 <!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 0])
 clocs += 1
 return
 
+; Pop location from click stack
 <^`::
 alocs.remove(clocs)
 clocs -= 1
@@ -189,7 +189,8 @@ return
 
 #MaxThreadsPerHotkey 1
 
-; Add locations to click array for rectangle press and let go locations
+; Push locations to click stack for rectangle press and let go locations
+; SHIFT + ALT + `
 <+<!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 1])
@@ -200,14 +201,16 @@ alocs.insert([mouseX, mouseY, mouseW, 0])
 clocs += 1
 return
 
-; Add location to click array to scroll down
+; Push location to click stack to scroll down
+; CTRL + ALT + `
 <^<!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 3])
 clocs += 1
 return
 
-; Add location to click array to scroll up
+; Push location to click stack to scroll up
+; CTRL + SHIFT + `
 <^<+`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 4])
@@ -215,6 +218,7 @@ clocs += 1
 return
 
 ; Decrease stime
+; SHIFT + 1
 <+1::
 stime -= 5
 if stime < 1
@@ -222,17 +226,19 @@ if stime < 1
 return
 
 ; Increase stime
+; SHIFT + 2
 <+2::
 stime += 5
 stime := stime - Mod(stime, 5)
 return
 
-; Read from file 0-9
+; Read from file
+; SHIFT + 3
 <+3::
-InputBox, fnum, Read File Number
-if fnum is number
-{
-	file := fname . fnum . fends
+; InputBox, fnum, Read File Number
+; if fnum is number
+; {
+	file := fname . fends ; file := fname . fnum . fends
 	removeall()
 	Loop, Read, %file%
 	{
@@ -259,15 +265,16 @@ if fnum is number
 		}
 	}
 	file.Close()
-}
+; }
 return
 
 ; Write to file
+; SHIFT + 4
 <+4::
-InputBox, fnum, Write File Number
-if fnum is number
-{
-	file := fname . fnum . fends
+; InputBox, fnum, Write File Number
+; if fnum is number
+; {
+	file := fname . fends ; file := fname . fnum . fends
 	file := FileOpen(file, "w")
 	if !IsObject(file)
 	{
@@ -284,10 +291,17 @@ if fnum is number
 		file.Write(tmp)
 	}
 	file.Close()
-}
+; }
 return
 
 ; Toggle clicc
+; SHIFT + 5
 <+5::
 clicc := !clicc
+return
+
+; Soft reset
+; SHIFT + 6
+<+6::
+removeall()
 return
