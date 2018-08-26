@@ -83,10 +83,10 @@ return
 toggle := !toggle
 i := 0
 MouseGetPos, mouseX, mouseY, mouseW
-if hold
-	Send {a down}{d down}
 Loop
 {
+	if hold
+		Send {a down}{d down}
 	if !toggle
 		break
 	if clocs <> 0
@@ -150,8 +150,8 @@ Loop
 			Sleep stime
 		}
 	}
+	Send {a up}{d up}
 }
-Send {a up}{d up}
 return
 
 ; Turn off auto clicker on left click
