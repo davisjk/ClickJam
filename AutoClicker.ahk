@@ -13,7 +13,6 @@ dtime := 5		; milliseconds between click down/up
 stime := 100	; milliseconds between clicks
 rtime := 50		; times to click in rectangle
 clicc := true	; click or just move the mouse around
-hold  := true	; hold down letter keys
 fname := A_WorkingDir . "\autoclicker"	; base name of config file
 fends := ".ini"
 
@@ -85,10 +84,10 @@ i := 0
 MouseGetPos, mouseX, mouseY, mouseW
 Loop
 {
-	if hold
-		Send {a down}{d down}
 	if !toggle
 		break
+	
+	clicker = Left
 	if clocs <> 0
 	{
 		i := Mod(i, clocs)
@@ -98,12 +97,6 @@ Loop
 			mouseX := alocs[i][1]
 			mouseY := alocs[i][2]
 			mouseW := alocs[i][3]
-			WinActivate, ahk_id mouseW
-			MouseMove, mouseX, mouseY
-			Click Down
-			Sleep dtime
-			Click Up
-			Sleep stime
 		}
 		if alocs[i][4] = 1
 		{
@@ -115,12 +108,7 @@ Loop
 			mouseX := alocs[i][1]
 			mouseY := alocs[i][2]
 			mouseW := alocs[i][3]
-			WinActivate, ahk_id mouseW
-			MouseMove, mouseX, mouseY
-			Click Down Right
-			Sleep dtime
-			Click Up Right
-			Sleep stime
+			clicker = Right
 		}
 		if alocs[i][4] = 3
 		{
@@ -150,7 +138,16 @@ Loop
 			Sleep stime
 		}
 	}
-	Send {a up}{d up}
+	; Send {a down}
+	Send {d down}
+	WinActivate, ahk_id mouseW
+	MouseMove, mouseX, mouseY
+	Click Down %clicker%
+	Sleep dtime
+	Click Up %clicker%
+	; Send {a up}
+	Send {d up}
+	Sleep stime
 }
 return
 
