@@ -9,10 +9,11 @@ alocs := []		; 2D stack of click locations [x, y, w, {normal, rect, ...}]
 clocs := 0		; number of stored click locations
 
 ; Constants
-dtime := 15		; milliseconds between click down/up
-stime := 30		; milliseconds between clicks
-rtime := 100	; times to click in rectangle
+dtime := 5		; milliseconds between click down/up
+stime := 100	; milliseconds between clicks
+rtime := 50		; times to click in rectangle
 clicc := true	; click or just move the mouse around
+hold  := true	; hold down letter keys
 fname := A_WorkingDir . "\autoclicker"	; base name of config file
 fends := ".ini"
 
@@ -40,10 +41,10 @@ rect(repeat, u, v)
 		if clicc
 		{
 			Click Down
-			Sleep, dtime
+			Sleep dtime
 			Click Up
 		}
-		Sleep, stime
+		Sleep stime
 	}
 	return
 }
@@ -59,20 +60,6 @@ removeall()
 	return
 }
 
-; Click and drag from u to v
-; otherwise return if u and v don't exist
-drag(u, v)
-{
-	global
-	if not ((clocs >= 2) and (clocs >= u) and (clocs >= v) and (alocs[u][3] = alocs[v][3]))
-		return
-	mouseW := alocs[u][3]
-	WinActivate, ahk_id mouseW
-	MouseClickDrag, Left, alocs[u][1], alocs[u][2], alocs[v][1], alocs[v][2]
-	Sleep, stime
-	return
-}
-
 ; Necessary for toggle to work
 #MaxThreadsPerHotkey 2
 
@@ -84,18 +71,20 @@ Loop
 	if !toggle
 		break
 	Click Down
-	Sleep, dtime
+	Sleep dtime
 	Click Up
-	Sleep, stime
+	Sleep stime
 }
 return
 
 ; Click based on the click array if it exists
 ; otherwise lock the mouse position
-<+`::
++`::
 toggle := !toggle
 i := 0
 MouseGetPos, mouseX, mouseY, mouseW
+if hold
+	Send {a down}{d down}
 Loop
 {
 	if !toggle
@@ -109,20 +98,30 @@ Loop
 			mouseX := alocs[i][1]
 			mouseY := alocs[i][2]
 			mouseW := alocs[i][3]
+			WinActivate, ahk_id mouseW
+			MouseMove, mouseX, mouseY
+			Click Down
+			Sleep dtime
+			Click Up
+			Sleep stime
 		}
 		if alocs[i][4] = 1
 		{
 			rect(rtime, i, i + 1)
 			i += 1
-			continue
 		}
-		; if alocs[i][4] = 2
-		; {
-			; ; Broken
-			; drag(i, i + 1)
-			; i += 1
-			; continue
-		; }
+		if alocs[i][4] = 2
+		{
+			mouseX := alocs[i][1]
+			mouseY := alocs[i][2]
+			mouseW := alocs[i][3]
+			WinActivate, ahk_id mouseW
+			MouseMove, mouseX, mouseY
+			Click Down Right
+			Sleep dtime
+			Click Up Right
+			Sleep stime
+		}
 		if alocs[i][4] = 3
 		{
 			mouseX := alocs[i][1]
@@ -135,7 +134,6 @@ Loop
 				Click WheelDown
 				Sleep % stime * 5
 			}
-			continue
 		}
 		if alocs[i][4] = 4
 		{
@@ -149,17 +147,11 @@ Loop
 				Click WheelUp
 				Sleep % stime * 5
 			}
-			Sleep, stime
-			continue
+			Sleep stime
 		}
 	}
-	WinActivate, ahk_id mouseW
-	MouseMove, mouseX, mouseY
-	Click Down
-	Sleep dtime
-	Click Up
-	Sleep, stime
 }
+Send {a up}{d up}
 return
 
 ; Turn off auto clicker on left click
@@ -172,38 +164,48 @@ Click Up
 toggle := false
 return
 
+#MaxThreadsPerHotkey 1
+
 ; Push location to click stack
-<!`::
+; ALT + `
+!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 0])
 clocs += 1
 return
 
 ; Pop location from click stack
-<^`::
+; CTRL + `
+^`::
 alocs.remove(clocs)
 clocs -= 1
 if clocs < 0
 	clocs := 0
 return
 
-#MaxThreadsPerHotkey 1
-
 ; Push locations to click stack for rectangle press and let go locations
 ; SHIFT + ALT + `
-<+<!`::
++!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 1])
 clocs += 1
 KeyWait, ``
 MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 0])
+alocs.insert([mouseX, mouseY, mouseW, -1])
+clocs += 1
+return
+
+; Push location to click stack for right click
+; CTRL + SHIFT + ALT + `
+^+!`::
+MouseGetPos, mouseX, mouseY, mouseW
+alocs.insert([mouseX, mouseY, mouseW, 2])
 clocs += 1
 return
 
 ; Push location to click stack to scroll down
 ; CTRL + ALT + `
-<^<!`::
+^!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 3])
 clocs += 1
@@ -211,7 +213,7 @@ return
 
 ; Push location to click stack to scroll up
 ; CTRL + SHIFT + `
-<^<+`::
+^+`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 4])
 clocs += 1
@@ -219,7 +221,7 @@ return
 
 ; Decrease stime
 ; SHIFT + 1
-<+1::
++1::
 stime -= 5
 if stime < 1
 	stime := 1
@@ -234,7 +236,7 @@ return
 
 ; Read from file
 ; SHIFT + 3
-<+3::
++3::
 ; InputBox, fnum, Read File Number
 ; if fnum is number
 ; {
@@ -270,7 +272,7 @@ return
 
 ; Write to file
 ; SHIFT + 4
-<+4::
++4::
 ; InputBox, fnum, Write File Number
 ; if fnum is number
 ; {
@@ -296,12 +298,12 @@ return
 
 ; Toggle clicc
 ; SHIFT + 5
-<+5::
++5::
 clicc := !clicc
 return
 
 ; Soft reset
 ; SHIFT + 6
-<+6::
++6::
 removeall()
 return
