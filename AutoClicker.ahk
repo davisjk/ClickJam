@@ -88,6 +88,8 @@ Loop
 		break
 	
 	clicker = Left
+	; Send {a down}
+	Send {d down}
 	if clocs <> 0
 	{
 		i := Mod(i, clocs)
@@ -138,17 +140,15 @@ Loop
 			Sleep stime
 		}
 	}
-	; Send {a down}
-	Send {d down}
 	WinActivate, ahk_id mouseW
 	MouseMove, mouseX, mouseY
 	Click Down %clicker%
 	Sleep dtime
 	Click Up %clicker%
-	; Send {a up}
-	Send {d up}
 	Sleep stime
 }
+; Send {a up}
+Send {d up}
 return
 
 ; Turn off auto clicker on left click
