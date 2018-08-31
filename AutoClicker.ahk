@@ -4,50 +4,73 @@ SendMode Input
 SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
-; Initializations
+;; Initializations
 alocs := []		; 2D stack of click locations [x, y, w, {normal, rect, ...}]
 clocs := 0		; number of stored click locations
 
-; Constants
+;; Constants
 dtime := 5		; milliseconds between click down/up
 stime := 100	; milliseconds between clicks
 rtime := 50		; times to click in rectangle
 clicc := true	; click or just move the mouse around
 fname := A_WorkingDir . "\autoclicker"	; base name of config file
 fends := ".ini"
+clicker = Left
 
 f1::Pause
 f2::Suspend
 f3::Reload
 f4::Edit
 
-; Click randomly in rectangle made by u and v locations in click stack
-; otherwise return if u and v don't exist
+;; Press key(s)
+presskeys()
+{
+	Send {a down}
+	Send {d down}
+}
+
+;; Release key(s)
+releasekeys()
+{
+	Send {a up}
+	Send {d up}
+}
+
+;; Click with sleeps, etc
+doclick(mouseX, mouseY, mouseW)
+{
+	WinActivate, ahk_id mouseW
+	MouseMove, mouseX, mouseY
+	presskeys()
+	if clicc
+	{
+		Click Down %clicker%
+		Sleep dtime
+		Click Up %clicker%
+	}
+	Sleep stime
+}
+
+;; Click randomly in rectangle made by u and v locations in click stack
+;; otherwise return if u and v don't exist
 rect(repeat, u, v)
 {
 	global
 	if not ((clocs >= 2) and (clocs >= u) and (clocs >= v) and (alocs[u][3] = alocs[v][3]))
 		return
 	mouseW := alocs[u][3]
-	WinActivate, ahk_id mouseW
 	Loop, %repeat%
 	{
 		if !toggle
 			break
 		Random, mouseX, alocs[u][1], alocs[v][1]
 		Random, mouseY, alocs[u][2], alocs[v][2]
-		MouseMove, mouseX, mouseY
-		if clicc
-		{
-			Click Down
-			Sleep dtime
-			Click Up
-		}
-		Sleep stime
+		doclick(mouseX, mouseY, mouseW)
 	}
 	return
 }
 
+;; Clear the click stack
 removeall()
 {
 	global
@@ -59,10 +82,10 @@ removeall()
 	return
 }
 
-; Necessary for toggle to work
+;; Necessary for toggle to work
 #MaxThreadsPerHotkey 2
 
-; Click unlocked mouse or stop click
+;; Click unlocked mouse or stop click
 `::
 toggle := !toggle
 Loop
@@ -76,8 +99,8 @@ Loop
 }
 return
 
-; Click based on the click array if it exists
-; otherwise lock the mouse position
+;; Click based on the click array if it exists
+;; otherwise lock the mouse position
 +`::
 toggle := !toggle
 i := 0
@@ -88,8 +111,6 @@ Loop
 		break
 	
 	clicker = Left
-	; Send {a down}
-	Send {d down}
 	if clocs <> 0
 	{
 		i := Mod(i, clocs)
@@ -124,6 +145,7 @@ Loop
 				Click WheelDown
 				Sleep % stime * 5
 			}
+			continue
 		}
 		if alocs[i][4] = 4
 		{
@@ -138,41 +160,36 @@ Loop
 				Sleep % stime * 5
 			}
 			Sleep stime
+			continue
 		}
 	}
-	WinActivate, ahk_id mouseW
-	MouseMove, mouseX, mouseY
-	Click Down %clicker%
-	Sleep dtime
-	Click Up %clicker%
-	Sleep stime
+	doclick(mouseX, mouseY, mouseW)
 }
-; Send {a up}
-Send {d up}
+releasekeys()
 return
 
-; Turn off auto clicker on left click
-LButton::
-Click Down	; click down still
-toggle := false
-; Have to click up too
-KeyWait, LButton
-Click Up
-toggle := false
-return
+;; Turn off auto clicker on left click
+; LButton::
+; Click Down	; click down still
+; toggle := false
+; ; Have to click up too
+; KeyWait, LButton
+; Click Up
+; toggle := false
+; return
 
 #MaxThreadsPerHotkey 1
 
-; Push location to click stack
-; ALT + `
+;; Push location to click stack
+;; ALT + `
 !`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 0])
 clocs += 1
 return
 
-; Pop location from click stack
-; CTRL + `
+;; Pop location from click stack
+;; CTRL + `
 ^`::
 alocs.remove(clocs)
 clocs -= 1
@@ -180,8 +197,8 @@ if clocs < 0
 	clocs := 0
 return
 
-; Push locations to click stack for rectangle press and let go locations
-; SHIFT + ALT + `
+;; Push locations to click stack for rectangle press and let go locations
+;; SHIFT + ALT + `
 +!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 1])
@@ -192,47 +209,47 @@ alocs.insert([mouseX, mouseY, mouseW, -1])
 clocs += 1
 return
 
-; Push location to click stack for right click
-; CTRL + SHIFT + ALT + `
+;; Push location to click stack for right click
+;; CTRL + SHIFT + ALT + `
 ^+!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 2])
 clocs += 1
 return
 
-; Push location to click stack to scroll down
-; CTRL + ALT + `
+;; Push location to click stack to scroll down
+;; CTRL + ALT + `
 ^!`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 3])
 clocs += 1
 return
 
-; Push location to click stack to scroll up
-; CTRL + SHIFT + `
+;; Push location to click stack to scroll up
+;; CTRL + SHIFT + `
 ^+`::
 MouseGetPos, mouseX, mouseY, mouseW
 alocs.insert([mouseX, mouseY, mouseW, 4])
 clocs += 1
 return
 
-; Decrease stime
-; SHIFT + 1
+;; Decrease stime
+;; SHIFT + 1
 +1::
 stime -= 5
 if stime < 1
 	stime := 1
 return
 
-; Increase stime
-; SHIFT + 2
+;; Increase stime
+;; SHIFT + 2
 <+2::
 stime += 5
 stime := stime - Mod(stime, 5)
 return
 
-; Read from file
-; SHIFT + 3
+;; Read from file
+;; SHIFT + 3
 +3::
 ; InputBox, fnum, Read File Number
 ; if fnum is number
@@ -267,8 +284,8 @@ return
 ; }
 return
 
-; Write to file
-; SHIFT + 4
+;; Write to file
+;; SHIFT + 4
 +4::
 ; InputBox, fnum, Write File Number
 ; if fnum is number
@@ -293,14 +310,14 @@ return
 ; }
 return
 
-; Toggle clicc
-; SHIFT + 5
+;; Toggle clicc
+;; SHIFT + 5
 +5::
 clicc := !clicc
 return
 
-; Soft reset
-; SHIFT + 6
+;; Soft reset
+;; SHIFT + 6
 +6::
 removeall()
 return
