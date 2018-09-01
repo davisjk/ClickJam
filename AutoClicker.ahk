@@ -371,9 +371,21 @@ return
 			continue
 		}
 		
-		if (SubStr(A_LoopReadLine, 1, 5) = "delay_time")
+		if (SubStr(A_LoopReadLine, 1, 10) = "delay_time")
 		{
-			delay_time := SubStr(A_LoopReadLine, 7)
+			delay_time := SubStr(A_LoopReadLine, 12)
+			continue
+		}
+		
+		if (SubStr(A_LoopReadLine, 1, 1) = "keypress_on")
+		{
+			keypress_on := true
+			continue
+		}
+		
+		if (SubStr(A_LoopReadLine, 1, 8) = "keypress")
+		{
+			keypress := SubStr(A_LoopReadLine, 10)
 			continue
 		}
 		
@@ -406,9 +418,29 @@ return
 	}
 	tmp := "delay_time " . delay_time . "`r`n"
 	file.Write(tmp)
+	if keypress_on
+	{
+		tmp := "keypress_on`r`nkeypress " . keypress . "`r`n"
+		file.Write(tmp)
+	}
 	for i, e in loc_stack
 	{
-		tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . "`r`n")
+		if e[1] == 0
+		{
+			tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . ", " . e[5] . "`r`n")
+		}
+		if e[1] == 1
+		{
+			tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . ", " . e[5] . ", " . e[6] . ", " . e[7] . "`r`n")
+		}
+		if e[1] == 2
+		{
+			tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . "`r`n")
+		}
+		if e[1] == 3
+		{
+			tmp := (e[1] . ", " . e[2] . "`r`n")
+		}
 		file.Write(tmp)
 	}
 	file.Close()
