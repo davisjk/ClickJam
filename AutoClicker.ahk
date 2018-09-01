@@ -1,89 +1,59 @@
 ﻿#NoEnv
+#UseHook
 SetWorkingDir %A_ScriptDir%
 SendMode Input
 SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
-;; Initializations
-alocs := []		; 2D stack of click locations [x, y, w, {normal, rect, ...}]
-clocs := 0		; number of stored click locations
-
 ;; Constants
-dtime := 5		; milliseconds between click down/up
-stime := 100	; milliseconds between clicks
-rtime := 50		; times to click in rectangle
-clicc := true	; click or just move the mouse around
-fname := A_WorkingDir . "\autoclicker"	; base name of config file
-fends := ".ini"
-clicker = Left
+fname		:= A_WorkingDir . "\autoclicker"	; base name of config file
+fends		:= ".ini"
+mleft		 = Left
+mright		 = Right
+mmiddle		 = Middle
+m4			 = X1
+m5			 = X2
+mwup		 = WheelUp
+mwdown		 = WheelDown
+mwleft		 = WheelLeft
+mwright		 = WheelRight
+
+;; Initializations
+;; [0,x,y,b,t]		click {L, R, M, X1, X2}
+;; [1,x,y,u,v,b,t]	rand click button
+;; [2,x,y,b]		wheel {WU, WD, WL, WR}
+;; [3,k]			press key
+loc_count	:= 0		; number of stored click locations
+loc_stack	:= []		; 2D stack of click locations
+hold_time	:= 5		; milliseconds between click down/up
+delay_time	:= 100		; milliseconds between clicks
+rand_clicks	:= 50		; times to randomly click inside rectangle
+keypress_on	:= false	; whether we should repeatedly press a key or not
+keypress	 = a		; key to repeatedly press
+
 
 f1::Pause
 f2::Suspend
 f3::Reload
 f4::Edit
 
-;; Press key(s)
-presskeys()
-{
-	Send {a down}
-	Send {d down}
-}
 
-;; Release key(s)
-releasekeys()
-{
-	Send {a up}
-	Send {d up}
-}
-
-;; Click with sleeps, etc
-doclick(mouseX, mouseY, mouseW)
-{
-	WinActivate, ahk_id mouseW
-	MouseMove, mouseX, mouseY
-	presskeys()
-	if clicc
-	{
-		Click Down %clicker%
-		Sleep dtime
-		Click Up %clicker%
-	}
-	Sleep stime
-}
-
-;; Click randomly in rectangle made by u and v locations in click stack
-;; otherwise return if u and v don't exist
-rect(repeat, u, v)
-{
-	global
-	if not ((clocs >= 2) and (clocs >= u) and (clocs >= v) and (alocs[u][3] = alocs[v][3]))
-		return
-	mouseW := alocs[u][3]
-	Loop, %repeat%
-	{
-		if !toggle
-			break
-		Random, mouseX, alocs[u][1], alocs[v][1]
-		Random, mouseY, alocs[u][2], alocs[v][2]
-		doclick(mouseX, mouseY, mouseW)
-	}
-	return
-}
-
-;; Clear the click stack
+;; clear loc_stack
 removeall()
 {
 	global
-	while clocs > 0
+	while loc_count > 0
 	{
-		alocs.remove(clocs)
-		clocs -= 1
+		loc_stack.remove(loc_count)
+		loc_count -= 1
 	}
 	return
 }
 
+
 ;; Necessary for toggle to work
 #MaxThreadsPerHotkey 2
+
 
 ;; Click unlocked mouse or stop click
 `::
@@ -91,166 +61,304 @@ toggle := !toggle
 Loop
 {
 	if !toggle
+	{
 		break
+	}
 	Click Down
-	Sleep dtime
+	Sleep hold_time
 	Click Up
-	Sleep stime
+	Sleep delay_time
 }
 return
 
-;; Click based on the click array if it exists
+
+;; Click based on loc_stack if it exists
 ;; otherwise lock the mouse position
 +`::
 toggle := !toggle
 i := 0
-MouseGetPos, mouseX, mouseY, mouseW
+MouseGetPos, x, y
 Loop
 {
 	if !toggle
-		break
-	
-	clicker = Left
-	if clocs <> 0
 	{
-		i := Mod(i, clocs)
+		break
+	}
+	
+	if keypress_on
+	{
+		Send {%keypress% Down}
+	}
+	
+	if (loc_count <> 0)
+	{
+		i := Mod(i, loc_count)
 		i += 1
-		if alocs[i][4] = 0
+		if loc_stack[i][1] == 0
 		{
-			mouseX := alocs[i][1]
-			mouseY := alocs[i][2]
-			mouseW := alocs[i][3]
+			;; [0,x,y,b,t] click {L, R, M, X1, X2}
+			x := loc_stack[i][2]
+			y := loc_stack[i][3]
+			b := loc_stack[i][4]
+			t := loc_stack[i][5]
+			Click Down %b% %x% %y% %t%
+			Sleep hold_time
+			Click Up %b%
+			Sleep delay_time
 		}
-		if alocs[i][4] = 1
+		else if loc_stack[i][1] == 1
 		{
-			rect(rtime, i, i + 1)
-			i += 1
-		}
-		if alocs[i][4] = 2
-		{
-			mouseX := alocs[i][1]
-			mouseY := alocs[i][2]
-			mouseW := alocs[i][3]
-			clicker = Right
-		}
-		if alocs[i][4] = 3
-		{
-			mouseX := alocs[i][1]
-			mouseY := alocs[i][2]
-			mouseW := alocs[i][3]
-			WinActivate, ahk_id mouseW
-			MouseMove, mouseX, mouseY
-			Loop 4
+			;; [1,x,y,u,v,b,t] rand click button
+			WinActivate, ahk_id loc_stack[i][3]
+			b := loc_stack[i][6]
+			t := loc_stack[i][7]
+			Loop, %rand_clicks%
 			{
-				Click WheelDown
-				Sleep % stime * 5
+				if !toggle
+				{
+					break
+				}
+				Random, x, loc_stack[i][2], loc_stack[i][4]
+				Random, y, loc_stack[i][3], loc_stack[i][5]
+				Click Down %b% %x% %y% %t%
+				Sleep hold_time
+				Click Up %b%
+				Sleep delay_time
 			}
-			continue
 		}
-		if alocs[i][4] = 4
+		else if loc_stack[i][1] == 2
 		{
-			mouseX := alocs[i][1]
-			mouseY := alocs[i][2]
-			mouseW := alocs[i][3]
-			WinActivate, ahk_id mouseW
-			MouseMove, mouseX, mouseY
-			Loop 4
-			{
-				Click WheelUp
-				Sleep % stime * 5
-			}
-			Sleep stime
-			continue
+			;; [2,x,y,b] wheel {WU, WD, WL, WR}
+			x := loc_stack[i][2]
+			y := loc_stack[i][3]
+			b := loc_stack[i][4]
+			;; kinda works
+			Click %b% %x% %y%
+			Sleep delay_time
+		}
+		else if loc_stack[i][1] == 3
+		{
+			;; [3,k] press key
+			k := loc_stack[i][2]
+			Send {%k% Down}
 		}
 	}
-	doclick(mouseX, mouseY, mouseW)
+	else
+	{
+		; TODO try doing stuff with send like : Send a{Click D L 123 123}
+		Click Down %x% %y%
+		Sleep hold_time
+		Click Up
+		Sleep delay_time
+	}
 }
-releasekeys()
+if keypress_on
+{
+	Send {%keypress% Up}
+}
 return
 
+
 ;; Turn off auto clicker on left click
-; LButton::
-; Click Down	; click down still
-; toggle := false
-; ; Have to click up too
-; KeyWait, LButton
-; Click Up
-; toggle := false
-; return
+LButton::
+Click Down	; click down still
+toggle := false
+; Have to click up too
+KeyWait, LButton
+Click Up
+toggle := false
+return
+
 
 #MaxThreadsPerHotkey 1
 
-;; Push location to click stack
-;; ALT + `
-!`::
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 0])
-clocs += 1
+
+;; Push locations to loc_stack
+;; LALT + ` = move
+<!`::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, "", 0])
+loc_count += 1
+return
+;; LALT + LButton = left
+<!LButton::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, mleft, 1])
+loc_count += 1
+return
+;; LALT + RButton = right
+<!RButton::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, mright, 1])
+loc_count += 1
+return
+;; LALT + MButton = middle
+<!MButton::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, mmiddle, 1])
+loc_count += 1
+return
+;; LALT + XButton1 = m4
+<!XButton1::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, m4, 1])
+loc_count += 1
+return
+;; LALT + XButton2 = m5
+<!XButton2::
+MouseGetPos, x, y
+loc_stack.insert([0, x, y, m5, 1])
+loc_count += 1
 return
 
-;; Pop location from click stack
-;; CTRL + `
-^`::
-alocs.remove(clocs)
-clocs -= 1
-if clocs < 0
-	clocs := 0
+
+;; Pop location from loc_stack
+;; LCTRL + `
+<^`::
+loc_stack.remove(loc_count)
+loc_count -= 1
+if loc_count < 0
+	loc_count := 0
 return
 
-;; Push locations to click stack for rectangle press and let go locations
-;; SHIFT + ALT + `
-+!`::
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 1])
-clocs += 1
+
+;; Push random locations to loc_stack
+;; LSHIFT + LALT + ` = move
+<+<!`::
+MouseGetPos, x, y
 KeyWait, ``
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, -1])
-clocs += 1
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, "", 0])
+loc_count += 1
+return
+;; LSHIFT + LALT + LButton = left
+<+<!LButton::
+MouseGetPos, x, y
+KeyWait, LButton
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, mleft, 1])
+loc_count += 1
+return
+;; LSHIFT + LALT + RButton = right
+<+<!RButton::
+MouseGetPos, x, y
+KeyWait, RButton
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, mright, 1])
+loc_count += 1
+return
+;; LSHIFT + LALT + MButton = middle
+<+<!MButton::
+MouseGetPos, x, y
+KeyWait, MButton
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, mmiddle, 1])
+loc_count += 1
+return
+;; LSHIFT + LALT + XButton1 = m4
+<+<!XButton1::
+MouseGetPos, x, y
+KeyWait, XButton1
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, m4, 1])
+loc_count += 1
+return
+;; LSHIFT + LALT + XButton2 = m5
+<+<!XButton2::
+MouseGetPos, x, y
+KeyWait, XButton2
+MouseGetPos, u, v
+loc_stack.insert([1, x, y, u, v, m5, 1])
+loc_count += 1
 return
 
-;; Push location to click stack for right click
-;; CTRL + SHIFT + ALT + `
-^+!`::
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 2])
-clocs += 1
+
+;; Push scroll location to loc_stack
+;; LALT + WheelUp
+<!WheelUp::
+MouseGetPos, x, y
+loc_stack.insert([2, x, y, mwup])
+loc_count += 1
+return
+;; LALT + WheelDown
+<!WheelDown::
+MouseGetPos, x, y
+loc_stack.insert([2, x, y, mwdown])
+loc_count += 1
+return
+;; LALT + WheelLeft
+<!WheelLeft::
+MouseGetPos, x, y
+loc_stack.insert([2, x, y, mwleft])
+loc_count += 1
+return
+;; LALT + WheelRight
+<!WheelRight::
+MouseGetPos, x, y
+loc_stack.insert([2, x, y, mwright])
+loc_count += 1
 return
 
-;; Push location to click stack to scroll down
-;; CTRL + ALT + `
-^!`::
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 3])
-clocs += 1
+
+;; Push key press to loc_stack
+;; LCTRL + LSHIFT + `
+<^<+`::
+Input, k, IL1
+loc_stack.insert([3, k])
+loc_count += 1
 return
 
-;; Push location to click stack to scroll up
-;; CTRL + SHIFT + `
-^+`::
-MouseGetPos, mouseX, mouseY, mouseW
-alocs.insert([mouseX, mouseY, mouseW, 4])
-clocs += 1
+
+;; Toggle and set repeated key press
+;; LCTRL + LSHIFT + LALT + `
+<^<+<!`::
+Input, k, IL1
+if keypress_on
+{
+	if k == keypress
+	{
+		keypress_on := false
+	}
+	Send {%keypress% Up}
+	keypress := k
+}
+else
+{
+	keypress := k
+	keypress_on := true
+}
 return
 
-;; Decrease stime
-;; SHIFT + 1
-+1::
-stime -= 5
-if stime < 1
-	stime := 1
+
+;; Decrease delay_time
+;; LCTRL + LSHIFT + 1
+<^<+1::
+delay_time -= 5
+if delay_time < 1
+{
+	delay_time := 1
+}
 return
 
-;; Increase stime
-;; SHIFT + 2
-<+2::
-stime += 5
-stime := stime - Mod(stime, 5)
+
+;; Increase delay_time
+;; LCTRL + LSHIFT + 2
+<^<+2::
+delay_time += 5
+delay_time := delay_time - Mod(delay_time, 5)
 return
+
+
+;; Soft reset
+;; LCTRL + LSHIFT + 2
+<^<+3::
+removeall()
+return
+
 
 ;; Read from file
-;; SHIFT + 3
-+3::
+;; LCTRL + LSHIFT + R
+<^<+r::
 ; InputBox, fnum, Read File Number
 ; if fnum is number
 ; {
@@ -259,24 +367,22 @@ return
 	Loop, Read, %file%
 	{
 		if (StrLen(A_LoopReadLine) = 0) or (SubStr(A_LoopReadLine, 1, 1) = ";")
-			continue
-		if (SubStr(A_LoopReadLine, 1, 5) = "stime")
 		{
-			stime := SubStr(A_LoopReadLine, 7)
-			continue
-		}
-		if (SubStr(A_LoopReadLine, 1, 5) = "clicc")
-		{
-			clicc := false
 			continue
 		}
 		
-		alocs.insert([])
-		clocs += 1
+		if (SubStr(A_LoopReadLine, 1, 5) = "delay_time")
+		{
+			delay_time := SubStr(A_LoopReadLine, 7)
+			continue
+		}
+		
+		loc_stack.insert([])
+		loc_count += 1
 		i := 1
 		Loop, parse, A_LoopReadLine, `,, %A_Space%
 		{
-			alocs[clocs][i] := A_LoopField
+			loc_stack[loc_count][i] := A_LoopField
 			i += 1
 		}
 	}
@@ -284,9 +390,10 @@ return
 ; }
 return
 
+
 ;; Write to file
-;; SHIFT + 4
-+4::
+;; LCTRL + LSHIFT + W
+<^<+w::
 ; InputBox, fnum, Write File Number
 ; if fnum is number
 ; {
@@ -297,27 +404,13 @@ return
 		MsgBox Can't open "%fname%" for writing.
 		return
 	}
-	tmp := "stime " . stime . "`r`n"
+	tmp := "delay_time " . delay_time . "`r`n"
 	file.Write(tmp)
-	if !clicc
-		file.Write("clicc`r`n")
-	for i, e in alocs
+	for i, e in loc_stack
 	{
 		tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . "`r`n")
 		file.Write(tmp)
 	}
 	file.Close()
 ; }
-return
-
-;; Toggle clicc
-;; SHIFT + 5
-+5::
-clicc := !clicc
-return
-
-;; Soft reset
-;; SHIFT + 6
-+6::
-removeall()
 return
