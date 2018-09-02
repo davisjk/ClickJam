@@ -6,7 +6,7 @@ SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
 ;; Constants
-fname		:= A_WorkingDir . "\autoclicker"	; base name of config file
+fname		:= "C:\Users\Public\autoclicker"	; base name of config file
 fends		:= ".ini"
 mleft		 = Left
 mright		 = Right
@@ -23,6 +23,7 @@ mwright		 = WheelRight
 ;; [1,x,y,u,v,b,t]	rand click button
 ;; [2,x,y,b]		wheel {WU, WD, WL, WR}
 ;; [3,k]			press key
+;; [4,k]			change keypress
 loc_count	:= 0		; number of stored click locations
 loc_stack	:= []		; 2D stack of click locations
 hold_time	:= 5		; milliseconds between click down/up
@@ -142,6 +143,25 @@ Loop
 			k := loc_stack[i][2]
 			Send {%k% Down}
 		}
+		else if loc_stack[i][1] == 4
+		{
+			;; [4,k] change keypress
+			k := loc_stack[i][2]
+			if keypress_on
+			{
+				if k == keypress
+				{
+					keypress_on := false
+				}
+				Send {%keypress% Up}
+				keypress := k
+			}
+			else
+			{
+				keypress := k
+				keypress_on := true
+			}
+		}
 	}
 	else
 	{
@@ -177,7 +197,7 @@ return
 ;; LALT + ` = move
 <!`::
 MouseGetPos, x, y
-loc_stack.insert([0, x, y, "", 0])
+loc_stack.insert([0, x, y, mleft, 0])
 loc_count += 1
 return
 ;; LALT + LButton = left
@@ -228,7 +248,7 @@ return
 MouseGetPos, x, y
 KeyWait, ``
 MouseGetPos, u, v
-loc_stack.insert([1, x, y, u, v, "", 0])
+loc_stack.insert([1, x, y, u, v, mleft, 0])
 loc_count += 1
 return
 ;; LSHIFT + LALT + LButton = left
@@ -313,20 +333,8 @@ return
 ;; LCTRL + LSHIFT + LALT + `
 <^<+<!`::
 Input, k, IL1
-if keypress_on
-{
-	if k == keypress
-	{
-		keypress_on := false
-	}
-	Send {%keypress% Up}
-	keypress := k
-}
-else
-{
-	keypress := k
-	keypress_on := true
-}
+loc_stack.insert([4, k])
+loc_count += 1
 return
 
 
@@ -350,9 +358,30 @@ return
 
 
 ;; Soft reset
-;; LCTRL + LSHIFT + 2
+;; LCTRL + LSHIFT + 3
 <^<+3::
 removeall()
+return
+
+
+;; Toggle and set repeated key press
+;; LCTRL + LSHIFT + 4
+<^<+4::
+Input, k, IL1
+if keypress_on
+{
+	if k == keypress
+	{
+		keypress_on := false
+	}
+	Send {%keypress% Up}
+	keypress := k
+}
+else
+{
+	keypress := k
+	keypress_on := true
+}
 return
 
 
@@ -364,6 +393,7 @@ return
 ; {
 	file := fname . fends ; file := fname . fnum . fends
 	removeall()
+	keypress_on := false
 	Loop, Read, %file%
 	{
 		if (StrLen(A_LoopReadLine) = 0) or (SubStr(A_LoopReadLine, 1, 1) = ";")
@@ -409,11 +439,11 @@ return
 ; InputBox, fnum, Write File Number
 ; if fnum is number
 ; {
-	file := fname . fends ; file := fname . fnum . fends
-	file := FileOpen(file, "w")
+	fpath := fname . fends ; file := fname . fnum . fends
+	file := FileOpen(fpath, "w")
 	if !IsObject(file)
 	{
-		MsgBox Can't open "%fname%" for writing.
+		MsgBox Can't open "%fpath%" for writing.
 		return
 	}
 	tmp := "delay_time " . delay_time . "`r`n"
@@ -437,7 +467,7 @@ return
 		{
 			tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . "`r`n")
 		}
-		if e[1] == 3
+		if e[1] == 3 or e[1] == 4
 		{
 			tmp := (e[1] . ", " . e[2] . "`r`n")
 		}
