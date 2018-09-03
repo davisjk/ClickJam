@@ -6,6 +6,7 @@ SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
 ;; Constants
+; fname		:= A_WorkingDir . "\autoclicker"	; base name of config file
 fname		:= "C:\Users\Public\autoclicker"	; base name of config file
 fends		:= ".ini"
 mleft		 = Left
@@ -22,8 +23,8 @@ mwright		 = WheelRight
 ;; [0,x,y,b,t]		click {L, R, M, X1, X2}
 ;; [1,x,y,u,v,b,t]	rand click button
 ;; [2,x,y,b]		wheel {WU, WD, WL, WR}
-;; [3,k]			press key
-;; [4,k]			change keypress
+;; [3,k]			change keypress
+;; [4,o]			set keypress_on
 loc_count	:= 0		; number of stored click locations
 loc_stack	:= []		; 2D stack of click locations
 hold_time	:= 5		; milliseconds between click down/up
@@ -75,7 +76,7 @@ return
 
 ;; Click based on loc_stack if it exists
 ;; otherwise lock the mouse position
-+`::
+<+`::
 toggle := !toggle
 i := 0
 MouseGetPos, x, y
@@ -139,28 +140,18 @@ Loop
 		}
 		else if loc_stack[i][1] == 3
 		{
-			;; [3,k] press key
-			k := loc_stack[i][2]
-			Send {%k% Down}
+			;; [3,k] change keypress
+			keypress := loc_stack[i][2]
 		}
 		else if loc_stack[i][1] == 4
 		{
-			;; [4,k] change keypress
-			k := loc_stack[i][2]
-			if keypress_on
+			;; [4,o] set keypress_on
+			o := loc_stack[i][2]
+			if keypress_on and !o
 			{
-				if k == keypress
-				{
-					keypress_on := false
-				}
 				Send {%keypress% Up}
-				keypress := k
 			}
-			else
-			{
-				keypress := k
-				keypress_on := true
-			}
+			keypress_on := o
 		}
 	}
 	else
@@ -179,15 +170,15 @@ if keypress_on
 return
 
 
-;; Turn off auto clicker on left click
-LButton::
-Click Down	; click down still
-toggle := false
-; Have to click up too
-KeyWait, LButton
-Click Up
-toggle := false
-return
+; ;; Turn off auto clicker on left click
+; LButton::
+; Click Down	; click down still
+; toggle := false
+; ; Have to click up too
+; KeyWait, LButton
+; Click Up
+; toggle := false
+; return
 
 
 #MaxThreadsPerHotkey 1
@@ -320,7 +311,7 @@ loc_count += 1
 return
 
 
-;; Push key press to loc_stack
+;; Push repeated key press to loc_stack
 ;; LCTRL + LSHIFT + `
 <^<+`::
 Input, k, IL1
@@ -329,11 +320,16 @@ loc_count += 1
 return
 
 
-;; Toggle and set repeated key press
+;; Push repeated key press on
+;; LCTRL + LALT + `
+<^<!`::
+loc_stack.insert([4, 1])
+loc_count += 1
+return
+;; Push repeated key press off
 ;; LCTRL + LSHIFT + LALT + `
 <^<+<!`::
-Input, k, IL1
-loc_stack.insert([4, k])
+loc_stack.insert([4, 0])
 loc_count += 1
 return
 
@@ -364,24 +360,17 @@ removeall()
 return
 
 
-;; Toggle and set repeated key press
+;; Set repeated key press
 ;; LCTRL + LSHIFT + 4
 <^<+4::
-Input, k, IL1
-if keypress_on
-{
-	if k == keypress
-	{
-		keypress_on := false
-	}
-	Send {%keypress% Up}
-	keypress := k
-}
-else
-{
-	keypress := k
-	keypress_on := true
-}
+Input, keypress, IL1
+return
+
+
+;; Toggle repeated key press
+;; LCTRL + LSHIFT + 5
+<^<+5::
+keypress_on := !keypress_on
 return
 
 
@@ -467,7 +456,7 @@ return
 		{
 			tmp := (e[1] . ", " . e[2] . ", " . e[3] . ", " . e[4] . "`r`n")
 		}
-		if e[1] == 3 or e[1] == 4
+		if e[1] == 3 or e[1] == 4 or e[1] == 5
 		{
 			tmp := (e[1] . ", " . e[2] . "`r`n")
 		}
