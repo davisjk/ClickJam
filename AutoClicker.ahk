@@ -141,6 +141,7 @@ Loop
 		else if loc_stack[i][1] == 3
 		{
 			;; [3,k] change keypress
+			Send {%keypress% Up}
 			keypress := loc_stack[i][2]
 		}
 		else if loc_stack[i][1] == 4
