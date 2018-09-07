@@ -6,8 +6,7 @@ SetDefaultMouseSpeed, 0
 CoordMode, Mouse, Screen
 
 ;; Constants
-; fname		:= A_WorkingDir . "\autoclicker"	; base name of config file
-fname		:= "C:\Users\Public\autoclicker"	; base name of config file
+fname		:= A_WorkingDir . "\autoclicker"	; base name of config file
 fends		:= ".ini"
 mleft		 = Left
 mright		 = Right
@@ -38,6 +37,7 @@ f1::Pause
 f2::Suspend
 f3::Reload
 f4::Edit
+f5::ExitApp
 
 
 ;; clear loc_stack
@@ -55,6 +55,12 @@ removeall()
 
 ;; Necessary for toggle to work
 #MaxThreadsPerHotkey 2
+
+
+;; Stop click
+~LButton::
+toggle := false
+return
 
 
 ;; Click unlocked mouse or stop click
