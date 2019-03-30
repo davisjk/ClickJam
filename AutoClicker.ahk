@@ -28,7 +28,7 @@ delay_time	:= 100		; milliseconds between clicks
 rand_clicks	:= 50		; times to randomly click inside rectangle
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;; YOU BETTER KNOW WHAT YOU'RE DOING IF YOU MODIFY ANYTHING BELOW THIS! ;;;;;
+;;;;; YOU BETTER KNOW WHAT YOU'RE DOING IF YOU MODIFY ANYTHING BELOW HERE! ;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
