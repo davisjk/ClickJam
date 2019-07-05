@@ -131,6 +131,7 @@ return
 ;; [2,x,y,b]		wheel {WU, WD, WL, WR}
 ;; [3,k]			change keypress
 ;; [4,o]			set keypress_on
+;; [5,k]			one time keypress
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -197,6 +198,13 @@ ExecuteClick(loc)
 			Send {%keypress% Up}
 		}
 		keypress_on := o
+	}
+	else if (loc[1] == 5)
+	{
+		;; [5,k] press k
+		k := loc[2]
+		Send {%k%}
+		Sleep delay_time
 	}
 }
 
@@ -437,6 +445,17 @@ return
 ;; LCTRL + LSHIFT + LALT + `
 <^<+<!`::
 loc_que.insert([4, 0])
+loc_cnt += 1
+return
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Push one time key press
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; RCTRL + `
+>^`::
+Input, k, IL1
+loc_que.insert([5, k])
 loc_cnt += 1
 return
 
