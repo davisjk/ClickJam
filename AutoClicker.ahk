@@ -42,6 +42,7 @@ loc_que     := []       ; 2D queue of click locations
 timer       := 0        ; use SetTimer %timer% if > 0 when starting clicks
 tim_cnt     := 0        ; number of stored click locations
 tim_que     := []       ; 2D queue of click locations
+max_delay   := delay_time + rand_delay
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -116,10 +117,13 @@ Loop
     {
         break
     }
+
+    Random, real_delay, delay_time, max_delay
+
     Click Down
     Sleep hold_time
     Click Up
-    Sleep delay_time
+    Sleep real_delay
 }
 return
 
@@ -142,7 +146,6 @@ ExecuteClick(loc)
 {
     global
     
-    max_delay := delay_time + rand_delay
     Random, real_delay, delay_time, max_delay
     
     if (loc[1] == 0)
@@ -591,7 +594,7 @@ Loop, Read, %file%
     
     if (SubStr(A_LoopReadLine, 1, 9) = "hold_time")
     {
-        delay_time := SubStr(A_LoopReadLine, 11)
+        hold_time := SubStr(A_LoopReadLine, 11)
         continue
     }
     
@@ -727,6 +730,27 @@ if (timer > 0)
         file.Write(tmp)
     }
 }
+
+file.Close()
+return
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Dump a debug log
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LCTRL + LSHIFT + D
+<^<+d::
+FormatTime, dt, , yyyyMMddHHmmss
+fpath := fdir . fnum . "." . "debug_" . dt . ".log"
+file := FileOpen(fpath, "w")
+
+if (!IsObject(file))
+{
+    MsgBox Can't open "%fpath%" for writing.
+    return
+}
+
+;; TODO write debug info
 
 file.Close()
 return
