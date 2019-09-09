@@ -28,6 +28,8 @@ hold_time   := 5        ; milliseconds between click down/up
 delay_time  := 100      ; milliseconds between clicks
 rand_clicks := 1        ; times to randomly click inside rectangle
 rand_delay  := 0        ; wait up to this much extra time on delay_time
+x_offset    := 0        ; add this to the x coordinate of all mouse actions
+y_offset    := 0        ; add this to the y coordinate of all mouse actions
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; YOU BETTER KNOW WHAT YOU'RE DOING IF YOU MODIFY ANYTHING BELOW HERE! ;;;;;
@@ -151,8 +153,8 @@ ExecuteClick(loc)
     if (loc[1] == 0)
     {
         ;; [0,x,y,b,t] click {L, R, M, X1, X2}
-        x := loc[2]
-        y := loc[3]
+        x := loc[2] + x_offset
+        y := loc[3] + y_offset
         b := loc[4]
         t := loc[5]
         Click Down %b% %x% %y% %t%
@@ -174,6 +176,8 @@ ExecuteClick(loc)
             }
             Random, x, loc[2], loc[4]
             Random, y, loc[3], loc[5]
+            x += x_offset
+            y += y_offset
             Click Down %b% %x% %y% %t%
             Sleep hold_time
             Click Up %b%
@@ -184,8 +188,8 @@ ExecuteClick(loc)
     else if (loc[1] == 2)
     {
         ;; [2,x,y,b] wheel {WU, WD, WL, WR}
-        x := loc[2]
-        y := loc[3]
+        x := loc[2] + x_offset
+        y := loc[3] + y_offset
         b := loc[4]
         ;; kinda works
         Click %b% %x% %y%
@@ -628,6 +632,18 @@ Loop, Read, %file%
         continue
     }
     
+    if (SubStr(A_LoopReadLine, 1, 8) = "x_offset")
+    {
+        x_offset := SubStr(A_LoopReadLine, 10)
+        continue
+    }
+    
+    if (SubStr(A_LoopReadLine, 1, 8) = "y_offset")
+    {
+        y_offset := SubStr(A_LoopReadLine, 10)
+        continue
+    }
+    
     if (timer > 0)
     {
         tim_que.insert([])
@@ -651,6 +667,7 @@ Loop, Read, %file%
         }
     }
 }
+max_delay   := delay_time + rand_delay
 file.Close()
 return
 
@@ -679,6 +696,12 @@ tmp := "rand_clicks " . rand_clicks . "`r`n"
 file.Write(tmp)
 
 tmp := "rand_delay " . rand_delay . "`r`n"
+file.Write(tmp)
+
+tmp := "x_offset " . x_offset . "`r`n"
+file.Write(tmp)
+
+tmp := "y_offset " . y_offset . "`r`n"
 file.Write(tmp)
 
 if (keypress_on)
