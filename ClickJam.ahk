@@ -18,18 +18,17 @@ CoordMode, Mouse, Screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-fnum        := 0                    ; file number
-fname       := "autoclicker"        ; base name of config files
-fdir        := A_WorkingDir . "\"   ; directory containing config files with trailing \
-fends       := ".ini"               ; file extention for config files
-keypress_on := false    ; whether we should repeatedly press a key or not
-keypress     = a        ; key to repeatedly press
-hold_time   := 5        ; milliseconds between click down/up
-delay_time  := 100      ; milliseconds between clicks
-rand_clicks := 1        ; times to randomly click inside rectangle
-rand_delay  := 0        ; wait up to this much extra time on delay_time
-x_offset    := 0        ; add this to the x coordinate of all mouse actions
-y_offset    := 0        ; add this to the y coordinate of all mouse actions
+fnum        := 0          ; file number
+fname       := "ClickJam" ; base name of config files
+fends       := ".ini"     ; file extention for config files
+keypress_on := false      ; whether we should repeatedly press a key or not
+keypress     = a          ; key to repeatedly press
+hold_time   := 5          ; milliseconds between click down/up
+delay_time  := 100        ; milliseconds between clicks
+rand_clicks := 1          ; times to randomly click inside rectangle
+rand_delay  := 0          ; wait up to this much extra time on delay_time
+x_offset    := 0          ; add this to the x coordinate of all mouse actions
+y_offset    := 0          ; add this to the y coordinate of all mouse actions
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; YOU BETTER KNOW WHAT YOU'RE DOING IF YOU MODIFY ANYTHING BELOW HERE! ;;;;;
@@ -579,7 +578,7 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LCTRL + LSHIFT + R
 <^<+r::
-file := fdir . fname . "." . fnum . fends
+file := fname . "." . fnum . fends
 removeall()
 keypress_on := false
 timer := 0
@@ -677,7 +676,7 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LCTRL + LSHIFT + W
 <^<+w::
-fpath := fdir . fname . "." . fnum . fends
+fpath := fname . "." . fnum . fends
 file := FileOpen(fpath, "w")
 
 if (!IsObject(file))
@@ -764,12 +763,12 @@ return
 ;; LCTRL + LSHIFT + D
 <^<+d::
 FormatTime, dt, , yyyyMMddHHmmss
-fpath := fdir . fnum . "." . "debug_" . dt . ".log"
+fpath := fname . "_dbg_" . dt . ".log"
 file := FileOpen(fpath, "w")
 
 if (!IsObject(file))
 {
-    MsgBox Can't open "%fpath%" for writing.
+    MsgBox, Can't open %fpath% for writing.
     return
 }
 
