@@ -1,26 +1,24 @@
-﻿#NoEnv
-#UseHook
-#Persistent
-#SingleInstance Ignore
-SetWorkingDir %A_ScriptDir%
-SendMode Input
-SetDefaultMouseSpeed, 0
-CoordMode, Mouse, Screen
+﻿;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mostly Required to Function Properly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;; DO NOT MODIFY ANYTHING ABOVE HERE! ;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; "OK" TO MODIFY ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#NoEnv                      ; + performance, don't look up env vars
+#UseHook On                 ; + responsiveness, no recursive macros
+#Persistent                 ; necessary for macros
+#SingleInstance Force       ; releod script on relaunch
+SetWorkingDir %A_ScriptDir% ; sets working dir to script dir
+SendMode Input              ; + speed & reliability, alias Send to SendInput
+SetDefaultMouseSpeed, 0     ; move the mouse instantly, TODO make this configurable 
+CoordMode, Mouse, Screen    ; move the mouse using screen coordinates, TODO make this configurable
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Global Constants
+;; Global Values
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-fnum        := 0          ; file number
 fname       := "ClickJam" ; base name of config files
+fnum        := 0          ; file number
 fends       := ".ini"     ; file extention for config files
+ClickJam    := Object()   ; macro configuration object
+
+;; TODO, make part of ClickJam
 keypress_on := false      ; whether we should repeatedly press a key or not
 keypress     = a          ; key to repeatedly press
 hold_time   := 5          ; milliseconds between click down/up
@@ -29,35 +27,26 @@ rand_clicks := 1          ; times to randomly click inside rectangle
 rand_delay  := 0          ; wait up to this much extra time on delay_time
 x_offset    := 0          ; add this to the x coordinate of all mouse actions
 y_offset    := 0          ; add this to the y coordinate of all mouse actions
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;; YOU BETTER KNOW WHAT YOU'RE DOING IF YOU MODIFY ANYTHING BELOW HERE! ;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Global Variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-loc_cnt     := 0        ; number of stored click locations
-loc_que     := []       ; 2D queue of click locations
-timer       := 0        ; use SetTimer %timer% if > 0 when starting clicks
-tim_cnt     := 0        ; number of stored click locations
-tim_que     := []       ; 2D queue of click locations
 max_delay   := delay_time + rand_delay
+loc_cnt     := 0          ; number of stored click locations
+loc_que     := []         ; 2D queue of click locations
+timer       := 0          ; use SetTimer %timer% if > 0 when starting clicks
+tim_cnt     := 0          ; number of stored click locations
+tim_que     := []         ; 2D queue of click locations
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; For convenience
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-m1           = Left
-m2           = Right
-m3           = Middle
-m4           = X1
-m5           = X2
-wu           = WheelUp
-wd           = WheelDown
-wl           = WheelLeft
-wr           = WheelRight
+m1 = Left
+m2 = Right
+m3 = Middle
+m4 = X1
+m5 = X2
+wu = WheelUp
+wd = WheelDown
+wl = WheelLeft
+wr = WheelRight
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
