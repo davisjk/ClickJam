@@ -1,6 +1,7 @@
 ﻿;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mostly Required to Function Properly
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#Include <ClickJam>
 #NoEnv                      ; + performance, don't look up env vars
 #UseHook On                 ; + responsiveness, no recursive macros
 #Persistent                 ; necessary for macros
@@ -13,26 +14,26 @@ CoordMode, Mouse, Screen    ; move the mouse using screen coordinates, TODO make
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global Values
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-fname       := "ClickJam" ; base name of config files
-fnum        := 0          ; file number
-fends       := ".ini"     ; file extention for config files
-ClickJam    := Object()   ; macro configuration object
+jam   := new ClickJam(0) ; object to load/store/execute macros
 
 ;; TODO, make part of ClickJam
-keypress_on := false      ; whether we should repeatedly press a key or not
-keypress     = a          ; key to repeatedly press
-hold_time   := 5          ; milliseconds between click down/up
-delay_time  := 100        ; milliseconds between clicks
-rand_clicks := 1          ; times to randomly click inside rectangle
-rand_delay  := 0          ; wait up to this much extra time on delay_time
-x_offset    := 0          ; add this to the x coordinate of all mouse actions
-y_offset    := 0          ; add this to the y coordinate of all mouse actions
+fname       := "ClickJam." ; base name of config files
+fnum        := 0           ; file number used in config file name
+fext        := ".json"     ; file extention for config files
+keypress_on := false       ; whether we should repeatedly press a key or not
+keypress     = a           ; key to repeatedly press
+hold_time   := 5           ; milliseconds between click down/up
+delay_time  := 100         ; milliseconds between clicks
+rand_clicks := 1           ; times to randomly click inside rectangle
+rand_delay  := 0           ; wait up to this much extra time on delay_time
+x_offset    := 0           ; add this to the x coordinate of all mouse actions
+y_offset    := 0           ; add this to the y coordinate of all mouse actions
 max_delay   := delay_time + rand_delay
-loc_cnt     := 0          ; number of stored click locations
-loc_que     := []         ; 2D queue of click locations
-timer       := 0          ; use SetTimer %timer% if > 0 when starting clicks
-tim_cnt     := 0          ; number of stored click locations
-tim_que     := []         ; 2D queue of click locations
+loc_cnt     := 0           ; number of stored click locations
+loc_que     := []          ; 2D queue of click locations
+timer       := 0           ; use SetTimer %timer% if > 0 when starting clicks
+tim_cnt     := 0           ; number of stored click locations
+tim_que     := []          ; 2D queue of click locations
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,13 +65,13 @@ f6::ExitApp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 removeall()
 {
-    global
-    while (loc_cnt > 0)
-    {
-        loc_que.remove(loc_cnt)
-        loc_cnt -= 1
-    }
-    return
+  global
+  while (loc_cnt > 0)
+  {
+    loc_que.remove(loc_cnt)
+    loc_cnt -= 1
+  }
+  return
 }
 
 
@@ -103,17 +104,17 @@ return
 toggle := !toggle
 Loop
 {
-    if (!toggle)
-    {
-        break
-    }
+  if (!toggle)
+  {
+    break
+  }
 
-    Random, real_delay, delay_time, max_delay
+  Random, real_delay, delay_time, max_delay
 
-    Click Down
-    Sleep hold_time
-    Click Up
-    Sleep real_delay
+  Click Down
+  Sleep hold_time
+  Click Up
+  Sleep real_delay
 }
 return
 
@@ -134,85 +135,85 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ExecuteClick(loc)
 {
-    global
-    
-    Random, real_delay, delay_time, max_delay
-    
-    if (loc[1] == 0)
+  global
+  
+  Random, real_delay, delay_time, max_delay
+  
+  if (loc[1] == 0)
+  {
+    ;; [0,x,y,b,t] click {L, R, M, X1, X2}
+    x := loc[2] + x_offset
+    y := loc[3] + y_offset
+    b := loc[4]
+    t := loc[5]
+    Click Down %b% %x% %y% %t%
+    Sleep hold_time
+    Click Up %b%
+    Sleep real_delay
+  }
+  else if (loc[1] == 1)
+  {
+    ;; [1,x,y,u,v,b,t] rand click button
+    WinActivate, ahk_id loc[3]
+    b := loc[6]
+    t := loc[7]
+    Loop, %rand_clicks%
     {
-        ;; [0,x,y,b,t] click {L, R, M, X1, X2}
-        x := loc[2] + x_offset
-        y := loc[3] + y_offset
-        b := loc[4]
-        t := loc[5]
-        Click Down %b% %x% %y% %t%
-        Sleep hold_time
-        Click Up %b%
-        Sleep real_delay
+      if (!toggle)
+      {
+        break
+      }
+      Random, x, loc[2], loc[4]
+      Random, y, loc[3], loc[5]
+      x += x_offset
+      y += y_offset
+      Click Down %b% %x% %y% %t%
+      Sleep hold_time
+      Click Up %b%
+      Random, real_delay, delay_time, max_delay
+      Sleep real_delay
     }
-    else if (loc[1] == 1)
+  }
+  else if (loc[1] == 2)
+  {
+    ;; [2,x,y,b] wheel {WU, WD, WL, WR}
+    x := loc[2] + x_offset
+    y := loc[3] + y_offset
+    b := loc[4]
+    ;; kinda works
+    Click %b% %x% %y%
+    Sleep real_delay
+  }
+  else if (loc[1] == 3)
+  {
+    ;; [3,k] change keypress
+    Send {%keypress% Up}
+    keypress := loc[2]
+  }
+  else if (loc[1] == 4)
+  {
+    ;; [4,o] set keypress_on
+    o := loc[2]
+    if (keypress_on and !o)
     {
-        ;; [1,x,y,u,v,b,t] rand click button
-        WinActivate, ahk_id loc[3]
-        b := loc[6]
-        t := loc[7]
-        Loop, %rand_clicks%
-        {
-            if (!toggle)
-            {
-                break
-            }
-            Random, x, loc[2], loc[4]
-            Random, y, loc[3], loc[5]
-            x += x_offset
-            y += y_offset
-            Click Down %b% %x% %y% %t%
-            Sleep hold_time
-            Click Up %b%
-            Random, real_delay, delay_time, max_delay
-            Sleep real_delay
-        }
+      Send {%keypress% Up}
     }
-    else if (loc[1] == 2)
-    {
-        ;; [2,x,y,b] wheel {WU, WD, WL, WR}
-        x := loc[2] + x_offset
-        y := loc[3] + y_offset
-        b := loc[4]
-        ;; kinda works
-        Click %b% %x% %y%
-        Sleep real_delay
-    }
-    else if (loc[1] == 3)
-    {
-        ;; [3,k] change keypress
-        Send {%keypress% Up}
-        keypress := loc[2]
-    }
-    else if (loc[1] == 4)
-    {
-        ;; [4,o] set keypress_on
-        o := loc[2]
-        if (keypress_on and !o)
-        {
-            Send {%keypress% Up}
-        }
-        keypress_on := o
-    }
-    else if (loc[1] == 5)
-    {
-        ;; [5,k] press k
-        k := loc[2]
-        m := loc[3]
-        Send %m%{%k%}
-        Sleep real_delay
-    }
-    else if (loc[1] == 6)
-    {
-        ;; [5,t] sleep t
-        t := loc[2]
-        Sleep t
-    }
+    keypress_on := o
+  }
+  else if (loc[1] == 5)
+  {
+    ;; [5,k] press k
+    k := loc[2]
+    m := loc[3]
+    Send %m%{%k%}
+    Sleep real_delay
+  }
+  else if (loc[1] == 6)
+  {
+    ;; [5,t] sleep t
+    t := loc[2]
+    Sleep t
+  }
 }
 
 
@@ -228,58 +229,58 @@ MouseGetPos, x, y
 start_time := A_TickCount
 Loop
 {
-    if (!toggle)
+  if (!toggle)
+  {
+    break
+  }
+  
+  if (keypress_on)
+  {
+    Send {%keypress% Down}
+  }
+  
+  if (i == loc_cnt and timer > 0 and tim_cnt > 0)
+  {
+    if (A_TickCount - start_time > timer)
     {
-        break
-    }
-    
-    if (keypress_on)
-    {
-        Send {%keypress% Down}
-    }
-    
-    if (i == loc_cnt and timer > 0 and tim_cnt > 0)
-    {
-        if (A_TickCount - start_time > timer)
+      j := 0
+      
+      Loop, %tim_cnt%
+      {
+        if (!toggle)
         {
-            j := 0
-            
-            Loop, %tim_cnt%
-            {
-                if (!toggle)
-                {
-                    break
-                }
-                
-                j += 1
-                ExecuteClick(tim_que[j])
-            }
-            
-            start_time := A_TickCount
+          break
         }
-    }
-    
-    if (loc_cnt > 0)
-    {
-        i := Mod(i, loc_cnt)
-        i += 1
         
-        ExecuteClick(loc_que[i])
+        j += 1
+        ExecuteClick(tim_que[j])
+      }
+      
+      start_time := A_TickCount
     }
-    else
-    {
-        i := 0
-        ; TODO try doing stuff with send like : Send a{Click D L 123 123}
-        Click Down %x% %y%
-        Sleep hold_time
-        Click Up
-        Random, real_delay, delay_time, max_delay
-        Sleep real_delay
-    }
+  }
+  
+  if (loc_cnt > 0)
+  {
+    i := Mod(i, loc_cnt)
+    i += 1
+    
+    ExecuteClick(loc_que[i])
+  }
+  else
+  {
+    i := 0
+    ; TODO try doing stuff with send like : Send a{Click D L 123 123}
+    Click Down %x% %y%
+    Sleep hold_time
+    Click Up
+    Random, real_delay, delay_time, max_delay
+    Sleep real_delay
+  }
 }
 if (keypress_on)
 {
-    Send {%keypress% Up}
+  Send {%keypress% Up}
 }
 return
 
@@ -339,7 +340,7 @@ return
 loc_que.remove(loc_cnt)
 loc_cnt -= 1
 if (loc_cnt < 0)
-    loc_cnt := 0
+  loc_cnt := 0
 return
 
 
@@ -476,7 +477,7 @@ return
 delay_time -= 5
 if (delay_time < 1)
 {
-    delay_time := 1
+  delay_time := 1
 }
 return
 
@@ -567,93 +568,93 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LCTRL + LSHIFT + R
 <^<+r::
-file := fname . "." . fnum . fends
+file := fname . fnum . fext
 removeall()
 keypress_on := false
 timer := 0
 Loop, Read, %file%
 {
-    if (StrLen(A_LoopReadLine) == 0 or SubStr(A_LoopReadLine, 1, 1) = ";")
+  if (StrLen(A_LoopReadLine) == 0 or SubStr(A_LoopReadLine, 1, 1) = ";")
+  {
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 10) = "delay_time")
+  {
+    delay_time := SubStr(A_LoopReadLine, 12)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 9) = "hold_time")
+  {
+    hold_time := SubStr(A_LoopReadLine, 11)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 1) = "keypress_on")
+  {
+    keypress_on := true
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 8) = "keypress")
+  {
+    keypress := SubStr(A_LoopReadLine, 10)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 9) = "set_timer")
+  {
+    timer := SubStr(A_LoopReadLine, 11)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 11) = "rand_clicks")
+  {
+    rand_clicks := SubStr(A_LoopReadLine, 13)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 10) = "rand_delay")
+  {
+    rand_delay := SubStr(A_LoopReadLine, 12)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 8) = "x_offset")
+  {
+    x_offset := SubStr(A_LoopReadLine, 10)
+    continue
+  }
+  
+  if (SubStr(A_LoopReadLine, 1, 8) = "y_offset")
+  {
+    y_offset := SubStr(A_LoopReadLine, 10)
+    continue
+  }
+  
+  if (timer > 0)
+  {
+    tim_que.insert([])
+    tim_cnt += 1
+    i := 1
+    Loop, parse, A_LoopReadLine, CSV
     {
-        continue
+      tim_que[tim_cnt][i] := A_LoopField
+      i += 1
     }
-    
-    if (SubStr(A_LoopReadLine, 1, 10) = "delay_time")
+  }
+  else
+  {
+    loc_que.insert([])
+    loc_cnt += 1
+    i := 1
+    Loop, parse, A_LoopReadLine, CSV
     {
-        delay_time := SubStr(A_LoopReadLine, 12)
-        continue
+      loc_que[loc_cnt][i] := A_LoopField
+      i += 1
     }
-    
-    if (SubStr(A_LoopReadLine, 1, 9) = "hold_time")
-    {
-        hold_time := SubStr(A_LoopReadLine, 11)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 1) = "keypress_on")
-    {
-        keypress_on := true
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 8) = "keypress")
-    {
-        keypress := SubStr(A_LoopReadLine, 10)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 9) = "set_timer")
-    {
-        timer := SubStr(A_LoopReadLine, 11)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 11) = "rand_clicks")
-    {
-        rand_clicks := SubStr(A_LoopReadLine, 13)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 10) = "rand_delay")
-    {
-        rand_delay := SubStr(A_LoopReadLine, 12)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 8) = "x_offset")
-    {
-        x_offset := SubStr(A_LoopReadLine, 10)
-        continue
-    }
-    
-    if (SubStr(A_LoopReadLine, 1, 8) = "y_offset")
-    {
-        y_offset := SubStr(A_LoopReadLine, 10)
-        continue
-    }
-    
-    if (timer > 0)
-    {
-        tim_que.insert([])
-        tim_cnt += 1
-        i := 1
-        Loop, parse, A_LoopReadLine, CSV
-        {
-            tim_que[tim_cnt][i] := A_LoopField
-            i += 1
-        }
-    }
-    else
-    {
-        loc_que.insert([])
-        loc_cnt += 1
-        i := 1
-        Loop, parse, A_LoopReadLine, CSV
-        {
-            loc_que[loc_cnt][i] := A_LoopField
-            i += 1
-        }
-    }
+  }
 }
 max_delay   := delay_time + rand_delay
 file.Close()
@@ -665,13 +666,13 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LCTRL + LSHIFT + W
 <^<+w::
-fpath := fname . "." . fnum . fends
+fpath := fname . fnum . fext
 file := FileOpen(fpath, "w")
 
 if (!IsObject(file))
 {
-    MsgBox Can't open "%fpath%" for writing.
-    return
+  MsgBox Can't open "%fpath%" for writing.
+  return
 }
 
 tmp := "delay_time " . delay_time . "`r`n"
@@ -694,52 +695,52 @@ file.Write(tmp)
 
 if (keypress_on)
 {
-    tmp := "keypress_on`r`nkeypress " . keypress . "`r`n"
-    file.Write(tmp)
+  tmp := "keypress_on`r`nkeypress " . keypress . "`r`n"
+  file.Write(tmp)
 }
 
 for i, e in loc_que
 {
-    tmp := ""
-    for j, k in e
+  tmp := ""
+  for j, k in e
+  {
+    if ("" . k == A_Space)
     {
-        if ("" . k == A_Space)
-        {
-            k := "Space"
-        }
-        if ("" . tmp != "")
-        {
-            tmp := "" . tmp . ","
-        }
-        tmp := "" . tmp . k
+      k := "Space"
     }
-    tmp := "" . tmp . "`r`n"
-    file.Write(tmp)
+    if ("" . tmp != "")
+    {
+      tmp := "" . tmp . ","
+    }
+    tmp := "" . tmp . k
+  }
+  tmp := "" . tmp . "`r`n"
+  file.Write(tmp)
 }
 
 if (timer > 0)
 {
-    tmp := "set_timer " . set_timer . "`r`n"
-    file.Write(tmp)
+  tmp := "set_timer " . set_timer . "`r`n"
+  file.Write(tmp)
 
-    for i, e in tim_que
+  for i, e in tim_que
+  {
+    tmp := ""
+    for j, k in e
     {
-        tmp := ""
-        for j, k in e
-        {
-            if ("" . k == A_Space)
-            {
-                k := "Space"
-            }
-            if ("" . tmp != "")
-            {
-                tmp := "" . tmp . ","
-            }
-            tmp := "" . tmp . k
-        }
-        tmp := "" . tmp . "`r`n"
-        file.Write(tmp)
+      if ("" . k == A_Space)
+      {
+        k := "Space"
+      }
+      if ("" . tmp != "")
+      {
+        tmp := "" . tmp . ","
+      }
+      tmp := "" . tmp . k
     }
+    tmp := "" . tmp . "`r`n"
+    file.Write(tmp)
+  }
 }
 
 file.Close()
@@ -752,13 +753,13 @@ return
 ;; LCTRL + LSHIFT + D
 <^<+d::
 FormatTime, dt, , yyyyMMddHHmmss
-fpath := fname . "_dbg_" . dt . ".log"
+fpath := fname . "dbg_" . dt . ".log"
 file := FileOpen(fpath, "w")
 
 if (!IsObject(file))
 {
-    MsgBox, Can't open %fpath% for writing.
-    return
+  MsgBox, Can't open %fpath% for writing.
+  return
 }
 
 ;; TODO write debug info
