@@ -23,7 +23,7 @@ fext        := ".json"     ; file extention for config files
 keypress_on := false       ; whether we should repeatedly press a key or not
 keypress     = a           ; key to repeatedly press
 hold_time   := 5           ; milliseconds between click down/up
-delay_time  := 100         ; milliseconds between clicks
+delay_time  := 50          ; milliseconds between clicks
 rand_clicks := 1           ; times to randomly click inside rectangle
 rand_delay  := 0           ; wait up to this much extra time on delay_time
 x_offset    := 0           ; add this to the x coordinate of all mouse actions
@@ -127,7 +127,9 @@ return
 ;; [2,x,y,b]        wheel {WU, WD, WL, WR}
 ;; [3,k]            change keypress
 ;; [4,o]            set keypress_on
-;; [5,k]            one time keypress
+;; [5,k,m]          one time keypress
+;; [6,t,r]          sleep time
+;; [7]              stop
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -210,9 +212,17 @@ ExecuteClick(loc)
   }
   else if (loc[1] == 6)
   {
-    ;; [5,t] sleep t
+    ;; [6,t,r] sleep t
     t := loc[2]
-    Sleep t
+    r := loc[3]
+    m := t + r
+    Random, s, t, m
+    Sleep s
+  }
+  else if (loc[1] == 7)
+  {
+    ;; [7] stop
+    toggle := false
   }
 }
 
