@@ -20,18 +20,18 @@ _Formatted such that the key combination is on the left hand side of '=' and the
 ### Turning on/off the autoclicker
 _If any variant of the autoclicker is on, the below hotkeys will instead stop the autoclicker._
 
-* `\`` = Start left clicking where the mouse is (this is only ever left click, not affected by the command stack).
-* `LShift + \`` = Use the command queue to click and press keys in order. Alternately, if the command queue is empty, left click in the location the mouse was in when the autoclicker was started.
+* `` ` `` = Start left clicking where the mouse is (this is only ever left click, not affected by the command stack).
+* ``LShift + ` `` = Use the command queue to click and press keys in order. Alternately, if the command queue is empty, left click in the location the mouse was in when the autoclicker was started.
 * Clicking any mouse button or moving the mouse wheel will stop the autoclicker and also click or scroll as normal.
 
 ### Modifying the command queue
 
-* `LCtrl + \`` = Remove one from queue
+* ``LCtrl + ` `` = Remove one from queue
 * `LCtrl + LShift + 3` = Clear the queue
 
 Single click:
 
-* `LAlt + \`` = Move without clicking
+* ``LAlt + ` `` = Move without clicking
 * `LAlt + LButton` = Left click
 * `LAlt + RButton` = Right click
 * `LAlt + MButton` = Middle click
@@ -40,7 +40,7 @@ Single click:
 
 Click randomly within a rectangle. Click and drag to create a corner of the rectangle at the location the buttons were pressed and a corner where they were let go:
 
-* `LShift + LAlt + \`` = Move without clicking
+* ``LShift + LAlt + ` `` = Move without clicking
 * `LShift + LAlt + LButton` = Left click
 * `LShift + LAlt + RButton` = Right click
 * `LShift + LAlt + MButton` = Middle click
@@ -49,10 +49,10 @@ Click randomly within a rectangle. Click and drag to create a corner of the rect
 
 Keyboard keys:
 
-* `LCtrl + LShift + \`` = Then press a key to change the 'key spam' key to that key at this point in the queue 
-* `LCtrl + LAlt + \`` = Turn 'key spam' on at this point in the queue
-* `LCtrl + LShift + LAlt + \`` = Turn 'key spam' off at this point in the queue
-* `RCtrl + \`` = Then press a key to add a single press of that key to the queue
+* ``LCtrl + LShift + ` `` = Then press a key to change the 'key spam' key to that key at this point in the queue 
+* ``LCtrl + LAlt + ` `` = Turn 'key spam' on at this point in the queue
+* ``LCtrl + LShift + LAlt + ` `` = Turn 'key spam' off at this point in the queue
+* ``RCtrl + ` `` = Then press a key to add a single press of that key to the queue
 
 ### Other features
 
@@ -72,6 +72,6 @@ Modify how the script is run:
 ## Modification notes (boils down to AHK basics that bit me in the rear)
 
 * You may want to modify some default configuration values. You can do this either in an ClickJam.#.json file as explained above, or you can modify the Global Constants section at the top of 'main.ahk'.
-* `\`` is the escape character in AHK and also featured heavily in this autoclicker script -_-
+* `` ` `` is the escape character in AHK and also featured heavily in this autoclicker script -_-
 * `a := b` sets the variable a to the value of the variable b
 * `a = b` sets the variable a to the string "b"
