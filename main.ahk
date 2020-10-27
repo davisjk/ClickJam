@@ -114,6 +114,7 @@ Loop
   Click Down
   Sleep hold_time
   Click Up
+  
   Sleep real_delay
 }
 return
