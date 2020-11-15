@@ -14,7 +14,7 @@ CoordMode, Mouse, Screen    ; move the mouse using screen coordinates, TODO make
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global Values
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-jam   := new ClickJam(0) ; object to load/store/execute macros
+jam := new ClickJam(0) ; object to load/store/execute macros
 
 ;; TODO, make part of ClickJam
 fname       := "ClickJam." ; base name of config files
@@ -308,37 +308,37 @@ return
 ;; LALT + ` = move
 <!`::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m1, 0])
+loc_que.insert([0, x - x_offset, y - y_offset, m1, 0])
 loc_cnt += 1
 return
 ;; LALT + LButton = left
 <!LButton::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m1, 1])
+loc_que.insert([0, x - x_offset, y - y_offset, m1, 1])
 loc_cnt += 1
 return
 ;; LALT + RButton = right
 <!RButton::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m2, 1])
+loc_que.insert([0, x - x_offset, y - y_offset, m2, 1])
 loc_cnt += 1
 return
 ;; LALT + MButton = middle
 <!MButton::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m3, 1])
+loc_que.insert([0, x - x_offset, y - y_offset, m3, 1])
 loc_cnt += 1
 return
 ;; LALT + XButton1 = m4
 <!XButton1::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m4, 1])
+loc_que.insert([0, x - x_offset, y - y_offset, m4, 1])
 loc_cnt += 1
 return
 ;; LALT + XButton2 = m5
 <!XButton2::
 MouseGetPos, x, y
-loc_que.insert([0, x, y, m5, 1])
+loc_que.insert([0, x - x_offset, y - y_offset, m5, 1])
 loc_cnt += 1
 return
 
@@ -363,7 +363,7 @@ return
 MouseGetPos, x, y
 KeyWait, ``
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m1, 0])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m1, 0])
 loc_cnt += 1
 return
 ;; LSHIFT + LALT + LButton = left
@@ -371,7 +371,7 @@ return
 MouseGetPos, x, y
 KeyWait, LButton
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m1, 1])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m1, 1])
 loc_cnt += 1
 return
 ;; LSHIFT + LALT + RButton = right
@@ -379,7 +379,7 @@ return
 MouseGetPos, x, y
 KeyWait, RButton
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m2, 1])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m2, 1])
 loc_cnt += 1
 return
 ;; LSHIFT + LALT + MButton = middle
@@ -387,7 +387,7 @@ return
 MouseGetPos, x, y
 KeyWait, MButton
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m3, 1])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m3, 1])
 loc_cnt += 1
 return
 ;; LSHIFT + LALT + XButton1 = m4
@@ -395,7 +395,7 @@ return
 MouseGetPos, x, y
 KeyWait, XButton1
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m4, 1])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m4, 1])
 loc_cnt += 1
 return
 ;; LSHIFT + LALT + XButton2 = m5
@@ -403,7 +403,7 @@ return
 MouseGetPos, x, y
 KeyWait, XButton2
 MouseGetPos, u, v
-loc_que.insert([1, x, y, u, v, m5, 1])
+loc_que.insert([1, x - x_offset, y - y_offset, u - x_offset, v - y_offset, m5, 1])
 loc_cnt += 1
 return
 
@@ -415,25 +415,25 @@ return
 ;; LALT + WheelUp
 <!WheelUp::
 MouseGetPos, x, y
-loc_que.insert([2, x, y, wu])
+loc_que.insert([2, x - x_offset, y - y_offset, wu])
 loc_cnt += 1
 return
 ;; LALT + WheelDown
 <!WheelDown::
 MouseGetPos, x, y
-loc_que.insert([2, x, y, wd])
+loc_que.insert([2, x - x_offset, y - y_offset, wd])
 loc_cnt += 1
 return
 ;; LALT + WheelLeft
 <!WheelLeft::
 MouseGetPos, x, y
-loc_que.insert([2, x, y, wl])
+loc_que.insert([2, x - x_offset, y - y_offset, wl])
 loc_cnt += 1
 return
 ;; LALT + WheelRight
 <!WheelRight::
 MouseGetPos, x, y
-loc_que.insert([2, x, y, wr])
+loc_que.insert([2, x - x_offset, y - y_offset, wr])
 loc_cnt += 1
 return
 
@@ -579,6 +579,7 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; LCTRL + LSHIFT + R
 <^<+r::
+toggle := false
 file := fname . fnum . fext
 removeall()
 keypress_on := false

@@ -56,8 +56,9 @@ Keyboard keys:
 
 ### Other features
 
-Config file:
+File I/O:
 
+* `LCtrl + LShift + D` = Write a debug log to 'ClickJam.dbg_yyyyMMddHHmmss.log'
 * `LCtrl + LShift + R` = Read from the current file, 0-9
 * `LCtrl + LShift + W` = Write to the current file, 0-9
 * `LShift + LAlt + [0-9]` = Change the file number that is read from and written to. For example, `LShift + LAlt + 1` changes the file to 'ClickJam.1.json'
