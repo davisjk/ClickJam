@@ -23,7 +23,7 @@ fext        := ".json"     ; file extention for config files
 keypress_on := false       ; whether we should repeatedly press a key or not
 keypress     = a           ; key to repeatedly press
 hold_time   := 5           ; milliseconds between click down/up
-delay_time  := 50          ; milliseconds between clicks
+delay_time  := 15          ; milliseconds between clicks
 rand_clicks := 1           ; times to randomly click inside rectangle
 rand_delay  := 0           ; wait up to this much extra time on delay_time
 x_offset    := 0           ; add this to the x coordinate of all mouse actions
@@ -486,9 +486,9 @@ return
 ;; LCTRL + LSHIFT + 1
 <^<+1::
 delay_time -= 5
-if (delay_time < 1)
+if (delay_time < 0)
 {
-  delay_time := 1
+  delay_time := 0
 }
 return
 
