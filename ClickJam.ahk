@@ -25,7 +25,7 @@ keypress_on := false      ; whether we should repeatedly press a key or not
 keypress     = a          ; key to repeatedly press
 hold_time   := 5          ; milliseconds between click down/up
 delay_time  := 10         ; milliseconds between clicks
-rand_clicks := 1000       ; times to randomly click inside rectangle
+rand_clicks := 10         ; times to randomly click inside rectangle
 rand_delay  := 0          ; wait up to this much extra time on delay_time
 x_offset    := 0          ; add this to the x coordinate of all mouse actions
 y_offset    := 0          ; add this to the y coordinate of all mouse actions
@@ -103,7 +103,7 @@ return
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Click unlocked mouse or stop click
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-NumpadDot::
+`::
     runclickjam := !runclickjam
     Loop
     {
@@ -223,8 +223,7 @@ ExecuteClick(loc)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Click based on loc_que if it exists, otherwise lock the mouse position and click
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Numpad0
-Numpad0::
+NumpadDot::
     runclickjam := !runclickjam
     i := 0
     MouseGetPos, x, y
@@ -583,6 +582,19 @@ return
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pop location from loc_que
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; LCTRL + `
+<^`::
+    if (loc_cnt > 0)
+    {
+        loc_que.remove(loc_cnt)
+        loc_cnt -= 1
+    }
+return
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DISABLE ALL HOTKEYS BELOW THIS IF ClickJam IS RUNNING OR F7 TOGGLED
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #If not (runclickjam or disablestackchanges)
@@ -626,18 +638,6 @@ return
     MouseGetPos, x, y
     loc_que.insert([0, x, y, m5, 1])
     loc_cnt += 1
-return
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Pop location from loc_que
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; LCTRL + `
-<^`::
-    loc_que.remove(loc_cnt)
-    loc_cnt -= 1
-    if (loc_cnt < 0)
-        loc_cnt := 0
 return
 
 
